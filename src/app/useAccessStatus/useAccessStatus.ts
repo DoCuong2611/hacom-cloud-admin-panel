@@ -5,6 +5,7 @@ import { accessClient } from '@/api/clients/accessClient/accessClient';
 import { getApiErrorCode, getApiErrorStatus, getErrorMessage } from '@/api/error/error';
 import { queryKeys } from '@/api/queryKeys/queryKeys';
 import { useAuthStore } from '@/store/authStore/authStore';
+import { isLocalDemoAuthEnabled, localDemoAccessStatus } from '@/config/localDemoAuth';
 
 export const useAccessStatus = () => {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -15,7 +16,7 @@ export const useAccessStatus = () => {
   const query = useQuery({
     queryKey: queryKeys.accessStatus,
     queryFn: accessClient.getCurrentStatus,
-    enabled: Boolean(accessToken),
+    enabled: Boolean(accessToken) && !isLocalDemoAuthEnabled,
     retry: (failureCount, error) => {
       const status = getApiErrorStatus(error);
       const code = getApiErrorCode(error);
@@ -31,6 +32,11 @@ export const useAccessStatus = () => {
     if (!accessToken) {
       setAccess(null);
       setAccessBootstrapStatus('unknown');
+      return;
+    }
+
+    if (isLocalDemoAuthEnabled) {
+      setAccess(localDemoAccessStatus);
       return;
     }
 

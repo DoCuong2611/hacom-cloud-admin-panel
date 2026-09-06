@@ -11,4 +11,4 @@ if [[ ! -f "${FALLBACK}" ]]; then
   exit 1
 fi
 
-exec bash "${FALLBACK}" chat-admin-panel "$@"
+exec bash "${FALLBACK}" hacom-cloud-admin-panel "$@"

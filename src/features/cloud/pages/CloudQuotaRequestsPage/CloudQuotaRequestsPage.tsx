@@ -321,7 +321,7 @@ export const CloudQuotaRequestsPage = ({ api }: CloudQuotaRequestsPageProps) => 
 
         <DataTableShell
           title="Danh sách quota request"
-          meta="Dữ liệu và trạng thái lấy từ Admin Service; không suy diễn ở trình duyệt."
+          meta="Dữ liệu và trạng thái lấy từ hacom-cloud-service; không suy diễn ở trình duyệt."
           loading={query.isFetching && !query.isPending}
           footer={
             <div className="cloud-quota-pagination" aria-label="Phân trang quota request">

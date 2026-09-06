@@ -1,4 +1,22 @@
-﻿# chat-admin-panel deploy bundle
+﻿# Cloud Admin deployment notes
+
+Cloud Admin is a static frontend. The edge must route `/api/v1/admin/*` directly
+to `hacom-cloud-service`, and `/api/v1/auth/*` to the Auth service. There is no
+Chat Admin backend fallback. Staging/production builds use relative API roots.
+The identity/bootstrap contract gap is tracked in
+[the implementation plan](../docs/cloud-admin-implementation-plan.md).
+
+The Cloud backend listens on `/api/v1/admin/cloud/*`. If the public edge uses
+the backend example's `/cloud-api/*` prefix, it must rewrite that public prefix
+to `/api/v1/admin/cloud/*`; the browser must continue to use the documented
+`/api/v1/admin/cloud/*` path.
+
+## Historical Chat Admin deploy bundle
+
+The remaining deployment material is inherited from `chat-admin-panel`; service
+names, company paths and rollout notes below are historical references, not a
+Cloud Admin deployment contract. The image is still a static Cloud Admin
+frontend and must never be deployed through `chat-admin-service`.
 
 This folder contains release-bundle artifacts used by CI/CD for develop and production deploys.
 
@@ -108,14 +126,11 @@ If the asset hash set changes and operators still see stale chunk or preload err
 2. Hard reload the browser after the purge.
 3. Confirm the public host and every replica serve the same `index.html` asset hashes.
 
-## Phase 4 write rollout notes (develop)
+## Legacy admin write rollout notes (not Cloud Admin contract)
 
-- Build-time flag `VITE_ADMIN_WRITE_ACTIONS_ENABLED` must be explicitly set to `true` only when backend write paths are verified.
-- Keep this flag aligned with backend runtime toggle `ADMIN_WRITE_ENABLED` in chat-admin-service to avoid UI/backend mismatch.
-- Recommended preflight before enabling:
-  - rollback drill for chat-admin-service, chat-admin-panel, and chat-auth-service completed
-  - write smoke tests passed: lock/unlock/revoke sessions and HR create/update/delete
-  - audit logs show actor, target entity, requestId, and action result
+The inherited admin-shell write flag does not authorize or control Cloud
+Admin mutations. Cloud Admin writes are governed by the public API contract in
+`hacom-cloud-service` and must be verified there before enabling the matching UI.
 
 ## Phase 5 hardening notes
 

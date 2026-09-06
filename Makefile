@@ -1,6 +1,6 @@
 SHELL := /bin/sh
 
-APP_NAME := chat-admin-panel
+APP_NAME := hacom-cloud-admin-panel
 IMAGE_NAME ?= hacom/$(APP_NAME)
 IMAGE_TAG ?= local
 CONTAINER_NAME ?= $(APP_NAME)-local

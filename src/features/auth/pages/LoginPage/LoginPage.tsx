@@ -14,6 +14,8 @@ import {
 import { PASSWORD_MIN_LENGTH, PASSWORD_MIN_LENGTH_MESSAGE } from '@/config/passwordPolicy';
 import { queryKeys } from '@/api/queryKeys/queryKeys';
 import { useAuthStore } from '@/store/authStore/authStore';
+import { isLocalDemoAuthEnabled, localDemoLoginResponse } from '@/config/localDemoAuth';
+import type { LoginRequest } from '@/api/types/auth/auth';
 import './LoginPage.css';
 
 const { Title, Text } = Typography;
@@ -68,7 +70,8 @@ export const LoginPage = () => {
   }, [location.state]);
 
   const loginMutation = useMutation({
-    mutationFn: authClient.login,
+    mutationFn: (payload: LoginRequest) =>
+      isLocalDemoAuthEnabled ? Promise.resolve(localDemoLoginResponse) : authClient.login(payload),
     onSuccess: async (data) => {
       try {
         const admin = await queryClient.fetchQuery({

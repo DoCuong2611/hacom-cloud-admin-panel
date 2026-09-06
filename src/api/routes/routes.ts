@@ -30,19 +30,11 @@ const rawAdminApiBaseUrl =
   import.meta.env.VITE_ADMIN_API_ROOT?.trim() ??
   import.meta.env.VITE_ADMIN_API_BASE_URL?.trim() ??
   '';
-const rawLegacyApiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim() ?? '';
 const rawAuthApiBaseUrl = import.meta.env.VITE_AUTH_BASE_URL?.trim() ?? '';
 
 const resolveAdminApiBaseUrl = (): string => {
   if (rawAdminApiBaseUrl) {
     return normalizeBaseUrl(rawAdminApiBaseUrl);
-  }
-
-  if (rawLegacyApiBaseUrl) {
-    const normalizedLegacyBase = normalizeBaseUrl(rawLegacyApiBaseUrl);
-    return normalizedLegacyBase.endsWith('/admin')
-      ? normalizedLegacyBase
-      : `${normalizedLegacyBase === '/' ? '' : normalizedLegacyBase}/admin`;
   }
 
   return TEST_FALLBACK_ADMIN_API_BASE_URL;
@@ -51,11 +43,6 @@ const resolveAdminApiBaseUrl = (): string => {
 const resolveAuthApiBaseUrl = (adminApiBaseUrl: string): string => {
   if (rawAuthApiBaseUrl) {
     return normalizeBaseUrl(rawAuthApiBaseUrl);
-  }
-
-  if (rawLegacyApiBaseUrl) {
-    const legacyApiBaseUrl = stripAdminSuffix(normalizeBaseUrl(rawLegacyApiBaseUrl));
-    return `${legacyApiBaseUrl === '/' ? '' : legacyApiBaseUrl}/auth`;
   }
 
   if (isTestMode) {
@@ -68,17 +55,6 @@ const resolveAuthApiBaseUrl = (adminApiBaseUrl: string): string => {
 
 export const adminApiBaseUrl = resolveAdminApiBaseUrl();
 export const authApiBaseUrl = resolveAuthApiBaseUrl(adminApiBaseUrl);
-
-/**
- * Base URL cho chat-api-service (`/api/v1`). Ticket báo cáo sự cố sống ở chat-api,
- * KHÔNG phải auth-service, nên admin panel gọi thẳng qua đây (đã chốt với user).
- */
-const resolveChatApiBaseUrl = (): string => {
-  const raw = import.meta.env.VITE_CHAT_API_BASE_URL?.trim() ?? '';
-  return raw ? normalizeBaseUrl(raw) : '/api/v1';
-};
-
-export const chatApiBaseUrl = resolveChatApiBaseUrl();
 
 /**
  * Asserts that the path does not include admin API prefix.

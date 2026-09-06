@@ -23,7 +23,7 @@ describe('cloudClient', () => {
     adminAxiosInstanceMock.post.mockReset();
   });
 
-  it('lists quota requests through the Admin public facade', async () => {
+  it('lists quota requests through the Cloud public admin API', async () => {
     adminAxiosInstanceMock.get.mockResolvedValueOnce({
       data: {
         success: true,

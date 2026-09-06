@@ -2,7 +2,6 @@
 
 interface ImportMetaEnv {
   readonly VITE_APP_ENV: 'development' | 'staging' | 'production' | 'docker' | string;
-  readonly VITE_APP_BASE_PATH: string;
   readonly VITE_DASHBOARD_REFETCH_INTERVAL_MS: string;
   readonly VITE_ADMIN_WRITE_ACTIONS_ENABLED: 'true' | 'false';
   readonly VITE_LIVE_UPDATES_URL: string;
@@ -17,8 +16,6 @@ interface ImportMetaEnv {
   readonly VITE_DEV_ADMIN_PROXY_TARGET: string;
   readonly VITE_DEV_AUTH_PROXY_TARGET: string;
 
-  // Legacy
-  readonly VITE_API_BASE_URL?: string;
 }
 
 interface ImportMeta {

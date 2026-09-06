@@ -2,7 +2,12 @@
 
 ## Scope
 
-This file applies to `chat-admin-panel`.
+This file applies to `hacom-cloud-admin-panel`.
+
+The repository inherits UI/UX patterns from `chat-admin-panel`; it is a
+separate Cloud Admin frontend. `chat-admin-service` must not be used in the
+Cloud runtime. The legacy API ownership notes below apply only to inherited
+non-Cloud modules and are not the Cloud Admin contract.
 
 Parent/root `AGENTS.md` defines global multi-repo rules. This file adds stricter rules for the Vite + React admin UI.
 
@@ -184,11 +189,13 @@ Before using any command, inspect `package.json`. Do not invent scripts.
 
 The admin panel is a client. It must not become a backend authority.
 
-Backend owners:
+Backend owners for inherited modules (not Cloud Admin):
 
+- For Cloud Admin routes, `hacom-cloud-service` owns Cloud data, Cloud admin
+  APIs, Cloud lifecycle, Cloud jobs, and Cloud audit. `chat-auth-service` owns
+  identity, sessions, JWT validation, and access authority.
 - `chat-admin-service` owns admin backend orchestration, SMTP settings, email templates, system logs, admin audit, and admin read models.
 - `chat-auth-service` owns auth identity, session, token, account lifecycle, and admin access policy where implemented.
-- `chat-api-service` owns chat business truth.
 - `hr-api-service` owns HR employee truth.
 - `chat-shared-types` owns shared contracts where used.
 

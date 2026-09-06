@@ -14,6 +14,21 @@ const App = () => {
   useEffect(() => {
     let active = true;
 
+    // There is no reason to call Auth refresh on a first visit. The access token
+    // is intentionally not persisted; these markers only indicate that a
+    // previous login established a browser session worth refreshing.
+    const hasPersistedSession =
+      typeof window !== 'undefined' &&
+      (window.localStorage.getItem('chat-admin-auth') !== null ||
+        window.sessionStorage.getItem('chat-admin-session-v2') !== null);
+
+    if (!hasPersistedSession) {
+      setInitialized(true);
+      return () => {
+        active = false;
+      };
+    }
+
     void authClient
       .refresh()
       .then((session) => {

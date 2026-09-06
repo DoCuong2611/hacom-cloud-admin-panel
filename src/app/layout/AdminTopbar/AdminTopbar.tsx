@@ -105,8 +105,8 @@ export const AdminTopbar: React.FC<AdminTopbarProps> = ({
   }, []);
 
   const paletteItems = useMemo(
-    () => [
-      ...commandRouteItems.map((item) => ({
+    () =>
+      commandRouteItems.map((item) => ({
           ...item,
           icon: <AppIcon name={item.iconKey} size={16} aria-hidden />,
           onSelect: () => {
@@ -115,34 +115,6 @@ export const AdminTopbar: React.FC<AdminTopbarProps> = ({
             }
           },
       })),
-      {
-        id: 'quick-open-users',
-        label: 'Mở người dùng',
-        description: 'Mở quản lý tài khoản để tìm kiếm và thao tác vận hành.',
-        category: 'Thao tác nhanh' as const,
-        icon: <AppIcon name="users" size={16} aria-hidden />,
-        keywords: ['users', 'accounts', 'admin'],
-        onSelect: () => navigate('/users'),
-      },
-      {
-        id: 'quick-open-alerts',
-        label: 'Mở Cảnh báo',
-        description: 'Xem danh sách cảnh báo và sự cố.',
-        category: 'Thao tác nhanh' as const,
-        icon: <AppIcon name="alert" size={16} aria-hidden />,
-        keywords: ['alerts', 'incidents', 'warnings'],
-        onSelect: () => navigate('/alerts'),
-      },
-      {
-        id: 'quick-open-realtime',
-        label: 'Mở Dashboard Realtime',
-        description: 'Theo dõi KPIs realtime của hệ thống.',
-        category: 'Thao tác nhanh' as const,
-        icon: <AppIcon name="activity" size={16} aria-hidden />,
-        keywords: ['realtime', 'dashboard', 'live', 'online'],
-        onSelect: () => navigate('/realtime'),
-      },
-    ],
     [navigate],
   );
 
@@ -203,7 +175,7 @@ export const AdminTopbar: React.FC<AdminTopbarProps> = ({
             user={user}
             onOpenNotifications={() => message.info('Trung tâm thông báo chưa được kết nối.')}
             onOpenProfile={() => navigate('/profile')}
-            onOpenSettings={() => navigate('/settings/system')}
+            onOpenSettings={() => navigate('/profile')}
             onLogout={handleLogout}
           />
         </div>

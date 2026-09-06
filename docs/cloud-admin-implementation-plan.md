@@ -36,16 +36,16 @@ Quy tắc bắt buộc:
 | --- | --- | --- |
 | Tách repository Cloud Admin | Đã hoàn tất | Có repository riêng cho Cloud Admin |
 | UI Cloud Admin | Đã có bản A+B tích hợp | Đang dùng để phát triển và thử nghiệm |
-| API client frontend | Đã có | Chỉ gọi public admin facade theo contract |
+| API client frontend | Đã có | Chỉ gọi public admin API của `hacom-cloud-service` theo contract |
 | Fixture local | Đã có | Chỉ được dùng khi phát triển local, không phải dữ liệu thật |
-| `chat-admin-service` Cloud facade | Chưa có trong phạm vi repository này | Đây là dependency backend bắt buộc |
-| Backend endpoint `/api/v1/admin/cloud/*` | Chưa được triển khai/verify đầy đủ | Không được coi tính năng đã chạy end-to-end |
+| `hacom-cloud-service` Cloud admin API | Đã code local trên branch backend riêng | Backend dependency duy nhất của Cloud Admin; chưa verify staging |
+| Backend endpoint `/api/v1/admin/cloud/*` | Quota review đã có local; các nhóm còn lại chưa đủ | Không được coi tính năng đã chạy end-to-end |
 | Prometheus/Grafana Cloud | Chưa tích hợp vận hành | Chỉ đưa vào sau khi có backend summary và datasource thật |
 | Production deployment | Chưa được phép | Repo cá nhân không có workflow deploy production |
 | CI repository mới | Đã có | `npm ci`, `npm run lint`, `npm run build` đã pass ở `e82ab20` |
 
 Lỗi `404` đã quan sát khi gọi `/api/v1/admin/cloud/overview` xác nhận rằng giao diện
-không thể tự thay thế backend. Khi backend chưa có facade, local fixture có thể giúp
+không thể tự thay thế backend. Khi backend chưa có public Cloud API, local fixture có thể giúp
 kiểm tra layout và tương tác, nhưng không được dùng để kết luận Cloud đã tích hợp.
 
 ## 3. Mã nguồn hiện có
@@ -53,7 +53,7 @@ kiểm tra layout và tương tác, nhưng không được dùng để kết lu�
 Bản Cloud Admin đã push vào `main` của repository mới gồm:
 
 - `src/features/cloud/`: các page, hook, component, type và trạng thái Cloud;
-- `src/api/clients/cloudClient/`: client cho Cloud admin facade;
+- `src/api/clients/cloudClient/`: client cho public Cloud admin API;
 - `src/api/clients/cloudOperationalClient/`: client cho operational summary;
 - `src/api/cloud/` và `src/api/types/cloud/`: export và type dùng chung;
 - route/menu Cloud trong `src/app/router/` và `src/app/layout/navigationConfig/`;
@@ -74,7 +74,7 @@ Các màn hình hiện có trong snapshot:
 - Cloud Audit.
 
 Các màn hình trên mới là lớp frontend. Chúng chỉ trở thành chức năng thật sau khi
-public facade, permission, dữ liệu canonical và test end-to-end đã sẵn sàng.
+Cloud backend, permission, dữ liệu canonical và test end-to-end đã sẵn sàng.
 
 ## 4. Contract đã thống nhất
 
@@ -86,10 +86,9 @@ khi backend triển khai và test qua staging.
 
 ```text
 Browser
-  -> chat-admin-panel
-  -> chat-admin-service public facade
-  -> Auth service-token
-  -> hacom-cloud-service internal API
+  -> hacom-cloud-admin-panel
+  -> hacom-cloud-service public admin API
+  -> Auth JWT/account authority
   -> Cloud database/object storage/worker
 ```
 
@@ -102,7 +101,7 @@ Frontend không được gọi trực tiếp:
 
 ### 4.2. Contract quota review
 
-Public facade mà frontend sẽ gọi:
+Public admin API trong `hacom-cloud-service` mà frontend sẽ gọi:
 
 ```http
 GET  /api/v1/admin/cloud/quota-requests
@@ -131,7 +130,7 @@ Body là `{}` nếu không có note. Chỉ cho phép chuyển `pending` sang `ap
 Frontend phải hiển thị đúng các trường hợp `400`, `403`, `404`, `409`, `429` và lỗi
 upstream `502/503/504`; không đổi lỗi backend thành thông báo thành công.
 
-### 4.3. Permission và service token
+### 4.3. Permission và xác thực
 
 Browser permission:
 
@@ -140,18 +139,14 @@ Browser permission:
 - `admin.cloud.observability.read`;
 - các permission lifecycle/jobs/audit chỉ mở khi phase tương ứng có backend.
 
-Cloud service scope:
-
-- `cloud.quota.review` cho quota;
-- `cloud.admin.read` cho read model và observability;
-- scope lifecycle/jobs/audit chỉ cấp khi backend đã triển khai.
-
-Browser không được tự gửi `X-Admin-Actor-ID`. Admin service phải lấy actor từ verified
-admin context và tự thêm actor khi gọi Cloud internal API.
+Cloud service tự xác minh browser admin JWT qua Auth JWKS và kiểm tra account/session
+authority. Actor được lấy từ claim `sub` đã verify, không nhận actor tùy ý từ browser.
+Service token chỉ dùng cho các lý do nội bộ của Cloud service (ví dụ gọi Auth authority),
+không đưa vào frontend.
 
 ### 4.4. Observability
 
-Frontend chỉ nhận summary từ facade:
+Frontend chỉ nhận summary từ Cloud service:
 
 ```http
 GET /api/v1/admin/cloud/observability
@@ -176,23 +171,27 @@ Trạng thái: **hoàn tất**.
 - Cloud không còn trên `origin/main` của repository công ty;
 - CI cá nhân không chạy deploy production của công ty.
 
-### Phase 1 — Backend facade quota review
+### Phase 1 — Cloud backend quota review
 
-Trạng thái: **chưa hoàn tất; đang chờ backend**.
+Trạng thái: **đã triển khai local; chưa hoàn tất gate staging**.
 
-Owner chính: `chat-admin-service`, phối hợp Auth và `hacom-cloud-service`.
+Owner chính: `hacom-cloud-service`, phối hợp Auth và repository frontend Cloud Admin.
 
-Việc cần làm:
+Đã triển khai trong `hacom-cloud-service`:
 
-- provision service client và scope theo contract;
-- triển khai `CloudServiceTokenClient` có cache và timeout;
-- triển khai public facade quota list/approve/reject;
-- kiểm tra browser permission và verified actor;
-- forward request ID và idempotency key;
-- map lỗi upstream và ghi audit;
-- viết contract test giữa Admin Service và Cloud Service.
+- triển khai public admin API quota list/approve/reject;
+- kiểm tra browser JWT, permission và verified actor trong Cloud service;
+- forward request ID và idempotency key vào domain quota;
+- giữ invariant quota, transaction, idempotency và audit;
 
-Gate hoàn thành: gọi thật từ Admin Service đến Cloud internal API qua staging, nhận
+Còn phải hoàn tất:
+
+- push branch backend riêng và deploy môi trường tích hợp;
+- viết/chạy contract test giữa Cloud Admin UI và Cloud service;
+- xác nhận reverse proxy route `/api/v1/admin/cloud/*`;
+- chạy staging E2E với Auth JWT thật.
+
+Gate hoàn thành: gọi thật từ Cloud Admin UI đến public Cloud API qua staging, nhận
 đúng response/error envelope và request ID. Nếu gate này chưa đạt, Phase 2 chỉ được
 test bằng fixture local.
 
@@ -211,7 +210,7 @@ Trạng thái: **frontend đã có bản triển khai; tích hợp thật chưa 
 
 Còn thiếu:
 
-- kết nối và verify facade staging;
+- kết nối và verify public Cloud API ở staging;
 - tắt fixture khi chạy staging;
 - test approve/reject end-to-end;
 - xác nhận query invalidate và idempotent retry với backend thật.
@@ -222,7 +221,7 @@ Trạng thái: **UI shell có thể hiển thị fixture; backend Prometheus/Gra
 
 Việc cần làm:
 
-- expose summary qua Admin Service;
+- expose summary trực tiếp qua Cloud service;
 - cấu hình scrape Cloud API và Worker bằng Prometheus nội bộ;
 - provision dashboard/alert Grafana có owner và runbook;
 - trả freshness, source status, bounded signals và warning code;
@@ -297,19 +296,19 @@ VITE_CLOUD_API_MODE=fixture
 ```
 
 Biến này không được dùng để giả lập staging/production. Khi backend đã sẵn sàng,
-staging phải chạy backend mode và xác nhận request đi qua Admin Service facade.
+staging phải chạy backend mode và xác nhận request đi qua `hacom-cloud-service`.
 
-Các biến service token, Cloud base URL, Prometheus và Grafana chỉ thuộc backend;
+Các biến service token, Cloud base URL, Prometheus và Grafana chỉ thuộc Cloud backend;
 không đưa vào bundle frontend.
 
 ## 8. Thứ tự công việc tiếp theo
 
 1. Backend owner hoàn thành Phase 1 và contract test ở staging.
-2. Team frontend dùng repository Cloud Admin để chạy Phase 2 với backend thật.
+2. Team frontend dùng repository Cloud Admin để chạy Phase 2 với `hacom-cloud-service` thật.
 3. Xác nhận login → list → detail → approve/reject → audit.
 4. Sau khi quota review ổn định, triển khai Phase 3 observability.
 5. Tiếp tục Phase 4, 5 và 6 theo đúng permission và read model tương ứng.
-6. Chỉ release khi không còn fixture, không còn 404 facade và có rollback/runbook.
+6. Chỉ release khi không còn fixture, không còn 404 public Cloud API và có rollback/runbook.
 
 ## 9. Definition of Done
 
@@ -317,8 +316,8 @@ Cloud Admin chỉ được coi là sẵn sàng tích hợp khi:
 
 - mã nguồn nằm trong repository Cloud Admin riêng;
 - frontend chỉ gọi `/api/v1/admin/cloud/*`;
-- backend facade đã deploy và verify ở staging;
-- permission, service token, actor, request ID và idempotency hoạt động đúng;
+- Cloud service admin API đã deploy và verify ở staging;
+- permission, browser JWT, actor, request ID và idempotency hoạt động đúng;
 - quota state là dữ liệu canonical từ Cloud Service;
 - lỗi 403/404/409/429/upstream được hiển thị đúng;
 - Prometheus/Grafana được gọi gián tiếp qua summary backend;
@@ -329,3 +328,46 @@ Cloud Admin chỉ được coi là sẵn sàng tích hợp khi:
 
 Hiện tại mới đạt phần tách repository, frontend snapshot A+B và CI lint/build. Các
 gate backend, staging E2E, observability thật và production release vẫn chưa đạt.
+
+## 10. Runtime contract review (2026-09-06)
+
+The Cloud Admin runtime is intentionally separate from the inherited Chat Admin
+runtime:
+
+```text
+Browser
+  -> hacom-cloud-admin-panel (static frontend)
+  -> hacom-cloud-service /api/v1/admin/cloud/*
+  -> Cloud data, object storage and workers
+
+Browser authentication
+  -> chat-auth-service /api/v1/auth/*
+```
+
+`chat-admin-service` is not a fallback, proxy, backend-for-frontend, or data
+source for Cloud Admin. The Vite `/api/v1/admin` proxy targets
+`hacom-cloud-service` by default; the Auth proxy remains separate. Production
+deployments must route the same paths at the edge. Missing Cloud endpoints are
+reported as unavailable; they must not be routed to Chat Admin.
+
+The visual shell, layout, navigation patterns and reusable UI from
+`chat-admin-panel` may be inherited. Inherited non-Cloud modules and their old
+API clients are historical compatibility code only. They are not part of the
+Cloud Admin contract and must not be used as evidence that Cloud APIs exist.
+The Cloud Admin router and navigation do not register those legacy screens, and
+the Vite runtime does not proxy their support API. Legacy feature source and
+API clients have been removed; only shared presentation primitives remain.
+
+Identity/bootstrap uses `chat-auth-service` `/api/v1/auth/me`. Cloud service
+does not expose the old Chat Admin `/api/v1/admin/me` contract. Frontend code
+must not restore that route, read admin truth from localStorage, or bypass the
+Auth/access guards to make login appear successful.
+
+Repository boundary:
+
+- Cloud Admin changes are committed and pushed only to the dedicated
+  `hacom-cloud-admin-panel` repository.
+- `chat-admin-panel` remains the company UI repository and is used only as a
+  UI/UX reference or source of reusable presentation patterns.
+- No Cloud Admin branch, commit, deployment workflow, or production release
+  may be added to the company repository without explicit approval.

@@ -156,7 +156,7 @@ describe('LoginPage admin preflight', () => {
     expect(loginMock).not.toHaveBeenCalled();
   });
 
-  it('stores token and enters dashboard only after /admin/me passes', async () => {
+  it('stores token and enters dashboard only after Auth /me passes', async () => {
     loginMock.mockResolvedValue({ accessToken: 'admin-token' });
     getCurrentAdminMock.mockResolvedValue(admin);
 

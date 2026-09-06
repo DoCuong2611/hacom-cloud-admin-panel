@@ -1,1 +1,0 @@
-export { ProjectionStatusIndicator } from './ProjectionStatusIndicator';

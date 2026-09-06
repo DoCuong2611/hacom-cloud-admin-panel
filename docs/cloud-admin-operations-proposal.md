@@ -4,7 +4,7 @@
 > Đây là ghi chú vận hành theo trạng thái hiện tại, không phải bằng chứng Cloud đã
 > được triển khai production.
 
-## 1. Nơi phát triển
+## 1. Nơi phát triển và repository boundary
 
 Cloud Admin được phát triển riêng tại:
 
@@ -13,10 +13,14 @@ Cloud Admin được phát triển riêng tại:
 Repository công ty `hacom-holding-dx/chat-admin-panel` không còn chứa branch Cloud.
 Không dùng repository công ty làm remote push cho Cloud Admin.
 
+`chat-admin-panel` chỉ là nguồn UI/UX kế thừa. Mọi code Cloud Admin phải nằm
+trong repository riêng này. Không commit, push hoặc triển khai Cloud Admin từ
+repository công ty nếu chưa có phê duyệt rõ ràng.
+
 ## 2. Trạng thái runtime
 
 Repository mới hiện có frontend Cloud Admin tích hợp A+B và CI `Lint and build`.
-Backend Admin Service chưa cung cấp đầy đủ public facade Cloud; vì vậy UI local có
+Backend `hacom-cloud-service` chưa cung cấp đầy đủ public admin API Cloud; vì vậy UI local có
 fixture để kiểm tra layout, filter, drawer, modal và error state.
 
 Fixture không phải dữ liệu thật và không được bật khi staging hoặc production.
@@ -26,10 +30,9 @@ Không kết luận quota, user, item, job hoặc audit từ fixture.
 
 ```text
 Admin browser
-  -> Cloud Admin UI
-  -> chat-admin-service /api/v1/admin/cloud/*
-  -> Auth service-token
-  -> hacom-cloud-service internal API
+  -> hacom-cloud-admin-panel
+  -> hacom-cloud-service /api/v1/admin/cloud/*
+  -> Auth JWT/account authority
 ```
 
 Prometheus chỉ scrape metrics nội bộ của Cloud API/Worker. Grafana đọc Prometheus để
@@ -40,9 +43,9 @@ internal API, database, object storage hoặc `/metrics`.
 
 Chỉ mở staging khi đã có:
 
-- Admin Service facade quota review;
-- service token đúng audience và scope;
-- browser permission và verified actor;
+- Cloud service public admin API cho quota review;
+- browser admin JWT được Cloud service verify qua Auth JWKS/account authority;
+- permission và verified actor;
 - request ID, idempotency key và audit;
 - response/error envelope đã test;
 - Prometheus target Cloud API/Worker có owner;
@@ -65,7 +68,7 @@ thì dừng, không push Cloud.
 
 | Hiện tượng | Ý nghĩa |
 | --- | --- |
-| `404 /api/v1/admin/cloud/*` | Backend facade chưa có hoặc route chưa được expose |
+| `404 /api/v1/admin/cloud/*` | Public admin API trong Cloud service chưa có hoặc route chưa được expose |
 | `403` | Permission admin hoặc service authorization không đủ |
 | `409` | Conflict state hoặc idempotency conflict |
 | `429` | Bị rate limit, giữ retry information nếu backend trả về |
@@ -80,7 +83,7 @@ cookie, authorization header, secret, signed URL hoặc raw object key.
 Không release Cloud Admin nếu còn một trong các điều kiện sau:
 
 - frontend còn gọi internal Cloud API trực tiếp;
-- facade chưa có contract test và staging E2E;
+- Cloud service admin API chưa có contract test và staging E2E;
 - fixture còn bật;
 - chưa có audit actor/request ID;
 - Grafana link chưa được allowlist;

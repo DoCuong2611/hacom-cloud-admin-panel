@@ -1,8 +1,21 @@
-﻿# chat-admin-panel
+﻿# hacom-cloud-admin-panel
 
-Vite + React admin UI for the chat platform.
+Vite + React frontend for Hacom Cloud. The Cloud backend owner is `hacom-cloud-service`.
 
-Canonical infrastructure orchestration lives in chat-infrastructure/compose/infra/develop.yml.
+Current contract: [Cloud Admin implementation plan](docs/cloud-admin-implementation-plan.md).
+
+Cloud requests go directly to `hacom-cloud-service`; `chat-admin-service` is not a runtime dependency. Auth identity/session authority remains in `chat-auth-service`.
+
+For a local UI-only demonstration, explicitly set
+`VITE_LOCAL_DEMO_AUTH=true` and `VITE_CLOUD_API_MODE=fixture`. Real Auth and
+Cloud services are the default contract; use `VITE_LOCAL_DEMO_AUTH=false` and
+`VITE_CLOUD_API_MODE=live` when exercising them locally.
+
+The panel inherits presentation patterns from `chat-admin-panel`, but its
+Cloud runtime contract is independent. Identity uses Auth `/api/v1/auth/me`;
+Cloud data uses `/api/v1/admin/cloud/*`. Only shared presentation primitives
+are retained from the old panel; its feature modules and API clients are not
+part of this repository.
 
 ## Runtime
 
@@ -20,12 +33,13 @@ make dev
 
 Vite dev server proxies API/auth calls to local services by default:
 
-- `/api/v1/admin` -> `http://localhost:3201`
+- `/api/v1/admin` -> `http://localhost:8080` (`hacom-cloud-service`)
 - `/api/v1/auth` -> `http://localhost:3101`
 
 Override with these env vars when needed:
 
-- `VITE_DEV_ADMIN_PROXY_TARGET`
+- `VITE_DEV_CLOUD_PROXY_TARGET` (preferred)
+- `VITE_DEV_ADMIN_PROXY_TARGET` (compatibility alias)
 - `VITE_DEV_AUTH_PROXY_TARGET`
 
 Runtime envs for hybrid dev and develop:
@@ -37,7 +51,7 @@ Runtime envs for hybrid dev and develop:
 Run local admin panel with develop backends:
 
 ```bash
-cp .env.dev.frontend-with-develop.example .env
+cp .env.local.example .env.local
 make dev
 ```
 

@@ -67,10 +67,12 @@ const liveCloudFeatureApi: {
   },
 };
 
-const cloudApiMode = import.meta.env.VITE_CLOUD_API_MODE?.trim().toLowerCase() ?? 'live';
+const cloudApiMode =
+  import.meta.env.VITE_CLOUD_API_MODE?.trim().toLowerCase() ??
+  (import.meta.env.DEV ? 'fixture' : 'live');
 
 /**
- * Fixture mode is opt-in for local UI checks while the Cloud Admin facade is unavailable.
- * Staging and production continue to use the live Admin Service by default.
+ * Fixture mode is opt-in for local UI checks while the Cloud service API is unavailable.
+ * Staging and production use the live hacom-cloud-service API by default.
  */
 export const cloudFeatureApi = cloudApiMode === 'fixture' ? cloudFixtureApi : liveCloudFeatureApi;

@@ -192,7 +192,7 @@ export const CloudObservabilityPage = ({ api }: CloudObservabilityPageProps) => 
     <PageShell
       eyebrow="Hacom Cloud"
       title="Giám sát Cloud"
-      description="Tín hiệu vận hành do Admin Service tổng hợp; Panel không gọi datasource trực tiếp."
+      description="Tín hiệu vận hành do hacom-cloud-service tổng hợp; Panel không gọi datasource trực tiếp."
       lastUpdated={formatDateTime(data.generatedAt)}
       isRefreshing={query.isFetching}
       onRefresh={() => void query.refetch()}

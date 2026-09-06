@@ -1,7 +1,7 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-import { adminApiBaseUrl, authApiBaseUrl, chatApiBaseUrl } from '@/api/routes/routes';
+import { adminApiBaseUrl, authApiBaseUrl } from '@/api/routes/routes';
 import { getAccessToken, useAuthStore } from '@/store/authStore/authStore';
 
 /**
@@ -72,8 +72,6 @@ export const authAxiosInstance = createJsonClient(authApiBaseUrl);
 // explicitly opt in to credentials; without this, a successful login response
 // cannot establish or rotate the server-side browser session.
 authAxiosInstance.defaults.withCredentials = true;
-// Ticket báo cáo sự cố nằm ở chat-api-service, cùng cơ chế Bearer token với admin.
-export const chatApiAxiosInstance = createJsonClient(chatApiBaseUrl);
 
 const buildRequestId = (): string => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -237,8 +235,15 @@ const attachRetryLogic = (client: AxiosInstance) => {
 
       const retryLimit = config.retry ?? DEFAULT_RETRY_COUNT;
       const retryCount = config.retryCount ?? 0;
+      const requestUrl = `${config.url ?? ''}`;
+      const isAuthBootstrapRequest =
+        requestUrl.endsWith('/login') ||
+        requestUrl.endsWith('/refresh') ||
+        requestUrl.includes('/auth/login') ||
+        requestUrl.includes('/auth/refresh');
 
       const shouldRetry =
+        !isAuthBootstrapRequest &&
         retryCount < retryLimit &&
         (!error.response || (error.response.status >= 500 && error.response.status < 600));
 
@@ -285,7 +290,7 @@ const attachRetryLogic = (client: AxiosInstance) => {
   );
 };
 
-[adminAxiosInstance, authAxiosInstance, chatApiAxiosInstance].forEach((client) => {
+[adminAxiosInstance, authAxiosInstance].forEach((client) => {
   attachRequestId(client);
   attachAuthHeader(client);
   if (client !== authAxiosInstance) attachSessionRecovery(client);
