@@ -1,9 +1,12 @@
 import { Button, Input, Select, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 
+import { useAuthStore } from '@/store/authStore/authStore';
+import type { CurrentAdmin } from '@/api/types/auth/auth';
 import { DataTableShell } from '@/components/DataTableShell/DataTableShell';
 import { DateTimeCell } from '@/components/DateTimeCell/DateTimeCell';
 import { FilterBar } from '@/components/FilterBar/FilterBar';
+import { MetaCell } from '@/components/MetaCell/MetaCell';
 import { PageShell } from '@/components/PageShell/PageShell';
 import { QueryStateView } from '@/components/QueryStates/QueryStates';
 import { StatusBadge } from '@/components/StatusBadge/StatusBadge';
@@ -142,6 +145,23 @@ const renderId = (value: string) => (
   </span>
 );
 
+const renderUserIdentity = (userId: string, currentAdmin: CurrentAdmin | null) => {
+  if (currentAdmin?.id !== userId) {
+    return (
+      <MetaCell
+        primary="Chưa đồng bộ danh bạ"
+        secondary={renderId(userId)}
+      />
+    );
+  }
+
+  const name = currentAdmin.displayName?.trim() || currentAdmin.fullName?.trim();
+  const account = currentAdmin.employeeCode?.trim() || currentAdmin.username?.trim() || currentAdmin.email?.trim();
+  const primary = [account, name].filter(Boolean).join(' — ') || userId;
+
+  return <MetaCell primary={primary} secondary={renderId(userId)} />;
+};
+
 const ReadModelDetail = ({
   record,
   view,
@@ -156,7 +176,7 @@ const ReadModelDetail = ({
         <div className="cloud-feature-detail-section">
           <h3>Định danh</h3>
           <div className="cloud-feature-field-grid">
-            <CloudField label="User ID" value={renderId(user.userId)} />
+            <CloudField label="Tài khoản / User ID" value={renderUserIdentity(user.userId, useAuthStore.getState().user)} />
             <CloudField label="Trạng thái" value={<StatusBadge status={user.status} />} />
             <CloudField label="Số drive" value={formatNumber(user.driveCount)} />
             <CloudField label="Số item" value={formatNumber(user.itemCount)} />
@@ -190,7 +210,7 @@ const ReadModelDetail = ({
           <h3>Định danh</h3>
           <div className="cloud-feature-field-grid">
             <CloudField label="Drive ID" value={renderId(drive.driveId)} />
-            <CloudField label="Owner user ID" value={renderId(drive.ownerUserId)} />
+            <CloudField label="Chủ tài khoản" value={renderUserIdentity(drive.ownerUserId, useAuthStore.getState().user)} />
             <CloudField label="Trạng thái" value={<StatusBadge status={drive.status} />} />
             <CloudField label="Số item" value={formatNumber(drive.itemCount)} />
           </div>
@@ -223,7 +243,7 @@ const ReadModelDetail = ({
         <div className="cloud-feature-field-grid">
           <CloudField label="Item ID" value={renderId(item.itemId)} />
           <CloudField label="Drive ID" value={renderId(item.driveId)} />
-          <CloudField label="Owner user ID" value={renderId(item.ownerUserId)} />
+          <CloudField label="Chủ tài khoản" value={renderUserIdentity(item.ownerUserId, useAuthStore.getState().user)} />
           <CloudField label="Loại" value={item.type} />
           <CloudField label="Trạng thái" value={<StatusBadge status={item.status} />} />
           <CloudField label="Kích thước" value={formatBytes(item.sizeBytes)} />
@@ -243,6 +263,7 @@ const ReadModelDetail = ({
 };
 
 export const CloudReadModelsPage = ({ api, view }: CloudReadModelsPageProps) => {
+  const currentAdmin = useAuthStore((state) => state.user);
   const [filters, setFilters] = useState<ReadModelFilters>(initialFilters);
   const [selectedRecord, setSelectedRecord] = useState<ReadModelRecord | null>(null);
   const pagination = useCloudCursorPagination({ defaultPageSize: DEFAULT_PAGE_SIZE });
@@ -467,7 +488,7 @@ export const CloudReadModelsPage = ({ api, view }: CloudReadModelsPageProps) => 
               <DataTable<CloudUserReadModel>
                 rowKey="userId"
                 columns={[
-                  { title: 'User ID', dataIndex: 'userId', key: 'userId', width: 220, render: renderId },
+                  { title: 'Tài khoản', dataIndex: 'userId', key: 'userId', width: 260, render: (value: string) => renderUserIdentity(value, currentAdmin) },
                   { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 130, render: (value: string) => <StatusBadge status={value} /> },
                   { title: 'Drive', dataIndex: 'driveCount', key: 'driveCount', width: 90, render: (value: number) => formatNumber(value) },
                   { title: 'Quota', dataIndex: 'quotaBytes', key: 'quotaBytes', width: 130, render: (value: number) => formatBytes(value) },
@@ -487,7 +508,7 @@ export const CloudReadModelsPage = ({ api, view }: CloudReadModelsPageProps) => 
                 rowKey="driveId"
                 columns={[
                   { title: 'Drive ID', dataIndex: 'driveId', key: 'driveId', width: 220, render: renderId },
-                  { title: 'Owner', dataIndex: 'ownerUserId', key: 'ownerUserId', width: 200, render: renderId },
+                  { title: 'Chủ tài khoản', dataIndex: 'ownerUserId', key: 'ownerUserId', width: 260, render: (value: string) => renderUserIdentity(value, currentAdmin) },
                   { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 130, render: (value: string) => <StatusBadge status={value} /> },
                   { title: 'Quota', dataIndex: 'quotaBytes', key: 'quotaBytes', width: 130, render: (value: number) => formatBytes(value) },
                   { title: 'Đã dùng', dataIndex: 'usedBytes', key: 'usedBytes', width: 130, render: (value: number) => formatBytes(value) },
@@ -507,6 +528,7 @@ export const CloudReadModelsPage = ({ api, view }: CloudReadModelsPageProps) => 
                 columns={[
                   { title: 'Item ID', dataIndex: 'itemId', key: 'itemId', width: 220, render: renderId },
                   { title: 'Drive ID', dataIndex: 'driveId', key: 'driveId', width: 200, render: renderId },
+                  { title: 'Chủ tài khoản', dataIndex: 'ownerUserId', key: 'ownerUserId', width: 260, render: (value: string) => renderUserIdentity(value, currentAdmin) },
                   { title: 'Loại', dataIndex: 'type', key: 'type', width: 100, render: (value: string) => <StatusBadge status={value} /> },
                   { title: 'Trạng thái', dataIndex: 'status', key: 'status', width: 130, render: (value: string) => <StatusBadge status={value} /> },
                   { title: 'Kích thước', dataIndex: 'sizeBytes', key: 'sizeBytes', width: 130, render: (value: number) => formatBytes(value) },
