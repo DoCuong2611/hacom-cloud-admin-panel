@@ -178,7 +178,7 @@ describe('LoginPage admin preflight', () => {
     expect(loginMock).toHaveBeenCalledTimes(1);
     expect(loginMock.mock.calls[0]?.[0]).toEqual(
       expect.objectContaining({
-        email: 'admin@company.test',
+        loginIdentifier: 'admin@company.test',
         password: 'secret88',
         rememberMe: false,
       }),

@@ -68,8 +68,7 @@ const liveCloudFeatureApi: {
 };
 
 const cloudApiMode =
-  import.meta.env.VITE_CLOUD_API_MODE?.trim().toLowerCase() ??
-  (import.meta.env.DEV ? 'fixture' : 'live');
+  import.meta.env.VITE_CLOUD_API_MODE?.trim().toLowerCase() ?? 'live';
 
 /**
  * Fixture mode is opt-in for local UI checks while the Cloud service API is unavailable.

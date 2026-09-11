@@ -44,6 +44,9 @@ import { CloudQuotaRequestsPage } from './CloudQuotaRequestsPage';
 const baseRequest: CloudQuotaRequest = {
   id: 'quota-request-1',
   ownerUserId: 'user-1',
+  requestedByUserId: 'user-1',
+  owner: { userId: 'user-1', username: 'demo.user', displayName: 'Demo User', email: 'demo@example.test' },
+  requestedBy: { userId: 'user-1', username: 'demo.user', displayName: 'Demo User', email: 'demo@example.test' },
   status: 'pending',
   currentQuotaBytes: 5_000_000_000,
   requestedQuotaBytes: 10_000_000_000,
@@ -98,6 +101,8 @@ describe('CloudQuotaRequestsPage', () => {
     renderPage(api);
 
     expect(await screen.findByText('quota-request-1')).toBeInTheDocument();
+    expect(screen.getByText('Demo User')).toBeInTheDocument();
+    expect(screen.getByText('@demo.user · demo@example.test')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Xem chi tiết quota-request-1' }));
 
     expect(await screen.findByText('Chi tiết quota request')).toBeInTheDocument();

@@ -1,8 +1,18 @@
 export type CloudQuotaRequestStatus = 'pending' | 'approved' | 'rejected';
 
+export interface CloudQuotaUserIdentity {
+  userId: string;
+  username?: string | null;
+  displayName?: string | null;
+  email?: string | null;
+}
+
 export interface CloudQuotaRequest {
   id: string;
   ownerUserId: string;
+  requestedByUserId?: string;
+  owner?: CloudQuotaUserIdentity | null;
+  requestedBy?: CloudQuotaUserIdentity | null;
   status: CloudQuotaRequestStatus;
   currentQuotaBytes: number;
   requestedQuotaBytes: number;

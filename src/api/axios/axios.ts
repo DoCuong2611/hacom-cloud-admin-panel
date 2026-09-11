@@ -125,6 +125,21 @@ const attachAuthHeader = (client: AxiosInstance) => {
   });
 };
 
+const attachLocalCloudDemoIdentity = (client: AxiosInstance) => {
+  if (client !== adminAxiosInstance || import.meta.env.VITE_DEV_CLOUD_AUTH_MODE?.trim().toLowerCase() !== 'demo') {
+    return;
+  }
+
+  client.interceptors.request.use((config) => {
+    const userId = useAuthStore.getState().user?.id;
+    if (userId && !config.headers['X-Demo-User-ID']) {
+      config.headers['X-Demo-User-ID'] = userId;
+    }
+
+    return config;
+  });
+};
+
 let refreshInFlight: Promise<string> | null = null;
 
 const refreshAccessToken = async (): Promise<string> => {
@@ -293,6 +308,7 @@ const attachRetryLogic = (client: AxiosInstance) => {
 [adminAxiosInstance, authAxiosInstance].forEach((client) => {
   attachRequestId(client);
   attachAuthHeader(client);
+  attachLocalCloudDemoIdentity(client);
   if (client !== authAxiosInstance) attachSessionRecovery(client);
   attachUnauthorizedRedirect(client);
   attachRetryLogic(client);

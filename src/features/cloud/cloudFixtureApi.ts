@@ -68,6 +68,19 @@ const matchesText = (value: string, query?: string): boolean =>
 const cloudQuotaFixture: CloudQuotaRequest = {
   id: 'quota-request-fixture',
   ownerUserId: 'user-fixture',
+  requestedByUserId: 'user-fixture',
+  owner: {
+    userId: 'user-fixture',
+    username: 'cloud.demo',
+    displayName: 'Cloud Demo',
+    email: 'cloud.demo@local.test',
+  },
+  requestedBy: {
+    userId: 'user-fixture',
+    username: 'cloud.demo',
+    displayName: 'Cloud Demo',
+    email: 'cloud.demo@local.test',
+  },
   status: 'pending',
   currentQuotaBytes: 5_000_000_000,
   requestedQuotaBytes: 10_000_000_000,

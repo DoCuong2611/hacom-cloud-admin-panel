@@ -165,7 +165,11 @@ export const CloudObservabilityPage = ({ api }: CloudObservabilityPageProps) => 
   }
 
   const signalCards = [
-    { label: 'Search P95', value: formatMs(data.signals.searchP95Ms), changeLabel: 'Theo snapshot server' },
+    {
+      label: 'Search P95',
+      value: formatMs(data.signals.searchP95Ms),
+      changeLabel: data.signals.searchP95Ms == null ? 'Chưa đủ mẫu tìm kiếm trong 5 phút' : 'Trong 5 phút gần nhất',
+    },
     {
       label: 'Tốc độ quota request',
       value: formatRate(data.signals.quotaRequestRatePerMinute, '/phút'),
@@ -192,7 +196,7 @@ export const CloudObservabilityPage = ({ api }: CloudObservabilityPageProps) => 
     <PageShell
       eyebrow="Hacom Cloud"
       title="Giám sát Cloud"
-      description="Tín hiệu vận hành do hacom-cloud-service tổng hợp; Panel không gọi datasource trực tiếp."
+      description="Số liệu từ Cloud API và worker được kết nối với hệ thống giám sát. Tự cập nhật mỗi 15 giây khi mở trang."
       lastUpdated={formatDateTime(data.generatedAt)}
       isRefreshing={query.isFetching}
       onRefresh={() => void query.refetch()}

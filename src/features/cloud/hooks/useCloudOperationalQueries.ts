@@ -32,6 +32,8 @@ export const useCloudObservability = (api: CloudObservabilityApi) =>
   useQuery({
     queryKey: cloudOperationalQueryKeys.observability,
     queryFn: ({ signal }) => api.getSummary({ signal }),
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
 export const useCloudOverview = (api: CloudReadModelsApi) =>

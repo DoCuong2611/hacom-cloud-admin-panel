@@ -23,6 +23,14 @@ part of this repository.
 - Production container port: `80`
 - Package manager: `npm`
 
+Cloud APIs default to live data, including in development. Fixture data requires
+an explicit `VITE_CLOUD_API_MODE=fixture`. Observability refreshes every 15 seconds
+while the page is visible. A missing search P95 is not zero latency: it means no
+usable search sample is available in the five-minute query window.
+
+Monitoring covers the API and worker targets configured in Prometheus. Testing
+a different Cloud backend or deployment does not feed this local dashboard.
+
 ## Local host mode
 
 ```bash

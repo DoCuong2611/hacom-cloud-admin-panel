@@ -147,7 +147,14 @@ export const LoginPage = () => {
     clearAuth();
     queryClient.removeQueries({ queryKey: queryKeys.currentAdmin });
     loginInFlight.current = true;
-    loginMutation.mutate({ ...parsed.data, rememberMe });
+    // Auth treats loginIdentifier as the canonical browser-login field. Keep
+    // the email-shaped value in that field so local aliases such as
+    // `cloud.user@local.test` are not rejected by the legacy email validator.
+    loginMutation.mutate({
+      loginIdentifier: parsed.data.email,
+      password: parsed.data.password,
+      rememberMe,
+    });
   };
 
   const handleRememberMeChange = (e: { target: { checked: boolean } }) => {

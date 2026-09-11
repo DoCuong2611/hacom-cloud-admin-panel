@@ -5,6 +5,7 @@ import type {
   CloudQuotaRequest,
   CloudQuotaReviewAction,
 } from '../../types/cloudQuotaTypes';
+import { getQuotaRequester, getQuotaUserPrimary, getQuotaUserSecondary } from '../../utils/cloudQuotaUser';
 import { CloudQuotaErrorState } from '../CloudQuotaErrorState/CloudQuotaErrorState';
 
 interface CloudQuotaReviewModalProps {
@@ -41,6 +42,7 @@ export const CloudQuotaReviewModal = ({
 }: CloudQuotaReviewModalProps) => {
   const [note, setNote] = useState('');
   const copy = action ? actionCopy[action] : actionCopy.approve;
+  const requester = request ? getQuotaRequester(request) : undefined;
 
   useEffect(() => {
     if (open) {
@@ -76,7 +78,9 @@ export const CloudQuotaReviewModal = ({
     >
       <Space direction="vertical" size={16} style={{ width: '100%' }}>
         <Typography.Paragraph>
-          Bạn đang {copy.verb} yêu cầu của người dùng <Typography.Text code>{request.ownerUserId}</Typography.Text>.
+          Bạn đang {copy.verb} yêu cầu của người dùng{' '}
+          <Typography.Text strong>{getQuotaUserPrimary(requester, request.ownerUserId)}</Typography.Text>
+          {getQuotaUserSecondary(requester) ? ` (${getQuotaUserSecondary(requester)})` : ''}.
           Kiểm tra quota hiện tại và mức quota yêu cầu trước khi xác nhận.
         </Typography.Paragraph>
 

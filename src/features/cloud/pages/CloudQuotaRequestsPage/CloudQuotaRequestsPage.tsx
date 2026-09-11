@@ -26,6 +26,7 @@ import type {
 } from '../../types/cloudQuotaTypes';
 import './CloudQuotaRequestsPage.css';
 import { CloudApiModeBanner } from '../../components/CloudApiModeBanner/CloudApiModeBanner';
+import { getQuotaRequester, getQuotaUserPrimary, getQuotaUserSecondary } from '../../utils/cloudQuotaUser';
 
 const DEFAULT_PAGE_SIZE = 25;
 
@@ -164,12 +165,20 @@ export const CloudQuotaRequestsPage = ({ api }: CloudQuotaRequestsPageProps) => 
         render: (value: string) => <Typography.Text code title={value}>{value}</Typography.Text>,
       },
       {
-        title: 'Owner user ID',
-        dataIndex: 'ownerUserId',
-        key: 'ownerUserId',
-        width: 190,
+        title: 'Người yêu cầu',
+        dataIndex: 'requestedBy',
+        key: 'requestedBy',
+        width: 230,
         ellipsis: true,
-        render: (value: string) => <MetaCell primary={value} />,
+        render: (_, record) => {
+          const requester = getQuotaRequester(record);
+          return (
+            <MetaCell
+              primary={getQuotaUserPrimary(requester, record.ownerUserId)}
+              secondary={getQuotaUserSecondary(requester) ?? `User ID: ${record.ownerUserId}`}
+            />
+          );
+        },
       },
       {
         title: 'Quota yêu cầu',

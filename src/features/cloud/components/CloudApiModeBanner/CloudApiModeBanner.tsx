@@ -7,8 +7,8 @@ export const CloudApiModeBanner = () =>
     <Alert
       type="warning"
       showIcon
-      title="Đang dùng dữ liệu mẫu local"
-      description="Backend Cloud Admin chưa được triển khai. Các thao tác trên trang này chỉ phục vụ kiểm tra giao diện."
+      title="Đang dùng dữ liệu mẫu local (fixture)"
+      description="Các trang Cloud hiện đang dùng fixture trong frontend, không đọc dữ liệu thật từ PostgreSQL/MinIO. Các thao tác chỉ tồn tại trong phiên trình duyệt; đặt VITE_CLOUD_API_MODE=live để gọi Cloud API thật."
       className="cloud-feature-mode-banner"
     />
   ) : null;

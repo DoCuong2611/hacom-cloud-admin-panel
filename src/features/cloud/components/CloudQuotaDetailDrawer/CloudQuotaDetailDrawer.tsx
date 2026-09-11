@@ -2,6 +2,7 @@ import { Button, Space, Typography } from 'antd';
 
 import { AppDrawer } from '@/components/AppDrawer/AppDrawer';
 import { DateTimeCell } from '@/components/DateTimeCell/DateTimeCell';
+import { MetaCell } from '@/components/MetaCell/MetaCell';
 import { StatusBadge } from '@/components/StatusBadge/StatusBadge';
 import { formatBytes } from '@/utils/formatters/formatters';
 
@@ -9,6 +10,7 @@ import type {
   CloudQuotaRequest,
   CloudQuotaReviewAction,
 } from '../../types/cloudQuotaTypes';
+import { getQuotaRequester, getQuotaUserPrimary, getQuotaUserSecondary } from '../../utils/cloudQuotaUser';
 
 interface CloudQuotaDetailDrawerProps {
   open: boolean;
@@ -35,6 +37,8 @@ export const CloudQuotaDetailDrawer = ({
   }
 
   const canReview = request.status === 'pending';
+  const requester = getQuotaRequester(request);
+  const requesterId = requester?.userId ?? request.ownerUserId;
 
   return (
     <AppDrawer
@@ -67,6 +71,17 @@ export const CloudQuotaDetailDrawer = ({
         </div>
 
         <dl className="cloud-quota-detail-facts">
+          <Fact label="Người yêu cầu">
+            <MetaCell
+              primary={getQuotaUserPrimary(requester, requesterId)}
+              secondary={getQuotaUserSecondary(requester)}
+            />
+          </Fact>
+          <Fact label="Requester user ID">
+            <Typography.Text copyable={{ text: requesterId }} code>
+              {requesterId}
+            </Typography.Text>
+          </Fact>
           <Fact label="Owner user ID">
             <Typography.Text copyable={{ text: request.ownerUserId }} code>
               {request.ownerUserId}
